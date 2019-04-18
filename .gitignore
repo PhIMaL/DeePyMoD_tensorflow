@@ -47,3 +47,4 @@ MANIFEST
 
 # Per-project virtualenvs
 .venv*/
+Deepymod.code-workspace
