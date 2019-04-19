@@ -65,33 +65,6 @@ def library_2Din_1Dout(data, prediction, library_config):
 
         return [u_t], theta
 
-def test_library(data, prediction, library_config):
-    '''
-    Constructs a library graph in 1D. Library config is dictionary with required terms.
-    '''
-
-    # Polynomial
-    u = tf.ones_like(prediction[:, 0:1])
-
-    for order in np.arange(1, library_config['poly_order']+1):
-        u = tf.concat((u, u[:, order-1:order]*prediction[:, 0:1]), axis=1)
-    u = tf.expand_dims(u, axis=2)
-
-    # Gradients
-    dy = tf.gradients(prediction[:, 0:1], data)[0]
-    y_t = dy[:, 1:2]
-    y_x = dy[:, 0:1]
-
-    du = tf.concat((tf.ones_like(y_x), y_x), axis=1)
-    for order in np.arange(2, library_config['deriv_order']+1):
-        du = tf.concat((du, tf.gradients(du[:, order-1], data)[0][:, 0:1]), axis=1)
-    du = tf.expand_dims(du, axis=1)
-
-    # Bringing it together
-    theta = tf.matmul(u, du)
-    theta = tf.reshape(theta, [tf.shape(theta)[0], tf.size(theta[0, :, :])])
-
-    return [y_t, y_t], theta
 
 def library_2Din_2Dout(data, prediction, library_config):
 
