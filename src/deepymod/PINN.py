@@ -1,9 +1,11 @@
 import numpy as np
 import tensorflow as tf
+import sys
 import os
 
-from deepymod.graphs import PINN_graph, inference_graph
-from deepymod.tb_setup import tb_setup
+sys.path.append('src/DeepMoD')
+from graphs import PINN_graph, inference_graph
+from tb_setup import tb_setup
 
 def PINN(data, target, mask, config, library_function, library_config, train_opts, output_opts):
     # Defining graph, optimizer and feed_dict

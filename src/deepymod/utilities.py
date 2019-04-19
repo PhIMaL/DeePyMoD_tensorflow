@@ -1,9 +1,9 @@
 import numpy as np
 import os
 import tensorflow as tf
-from re import search
 import pandas as pd
-
+import sys
+sys.path.append('src/DeepMoD')
 
 def library_matrix_mat(u, v, latex=False):
     '''
@@ -45,89 +45,43 @@ def print_PDE(sparse_vector, coeffs_list, PDE_term='u_t'):
     print(PDE)
 
 
-def tb_to_npy(event_folder):
-    '''
-    Returns tensorboard event file in event_folder as npy dict.
-    '''
-    event_path = os.path.join(event_folder, os.listdir(event_folder)[0])
+def tensorboard_to_dataframe(event_path):
+    data_iterator = tf.train.summary_iterator(event_path)
+
     data = []
-    # parsing event data
-    for event in tf.train.summary_iterator(event_path):
-        data.append([value.simple_value for value in event.summary.value])
-        if event.step == 0:
-            tags = [value.tag for value in event.summary.value]
-    data = np.array(data[3:])
+    epoch = []
+    while True:
+        try:
+            event = data_iterator.__next__()
+            data.append([value.simple_value for value in event.summary.value])
+            epoch.append(event.step)
+            if event.step == 0:
+                tags = [value.tag for value in event.summary.value]
+        except:
+            break
+    data = np.array(data[3:]) #first three steps contain bullshit
+    epoch = np.array(epoch[3:])
 
-    # establishing search pattern for vectors
-    coeffs_pattern = []
-    coeffs_scaled_pattern = []
-    scaling_pattern = []
+    # Parsing data into a nice dataframe
+    idx_coeffs = []
+    idx_coeffs_scaled = []
+
     for idx, term in enumerate(tags):
-        if search(r'Unscaled_*', term) is not None:
-            coeffs_pattern.append(idx)
-
-        if search(r'Scaled_*', term) is not None:
-            coeffs_scaled_pattern.append(idx)
-
-        if search(r'Scaling_*', term) is not None:
-            scaling_pattern.append(idx)
-
-    # Putting everything into a nice dictionary
-    coeffs = np.take(data, coeffs_pattern, axis=1)
-    coeffs_scaled = np.take(data, coeffs_scaled_pattern, axis=1)
-    scaling = np.take(data, scaling_pattern, axis=1)
-
-    data_dict = {}
-    for tag_idx in np.arange(6):
-        data_dict.update({str(tags[tag_idx]): data[:, tag_idx]})
-        data_dict.update({'coeffs': coeffs,
-                          'coeffs_scaled': coeffs_scaled,
-                          'scaling': scaling})
-
-    return data_dict
-
-
-def tb_to_dataframe(event_folder):
-    '''
-    Returns tensorboard event file in event_folder as pandas dataframe.
-    '''
-    event_path = os.path.join(event_folder, os.listdir(event_folder)[0])
-    data = []
-    # parsing event data
-    for event in tf.train.summary_iterator(event_path):
-        data.append([value.simple_value for value in event.summary.value])
-        if event.step == 0:
-            tags = [value.tag for value in event.summary.value]
-    data = np.array(data[3:])
-
-    # establishing search pattern for vectors
-    coeffs_pattern = []
-    coeffs_scaled_pattern = []
-    scaling_pattern = []
-    for idx, term in enumerate(tags):
-        if search(r'Unscaled_*', term) is not None:
-            coeffs_pattern.append(idx)
-
-        if search(r'Scaled_*', term) is not None:
-            coeffs_scaled_pattern.append(idx)
-
-        if search(r'Scaling_*', term) is not None:
-            scaling_pattern.append(idx)
-
-    # Putting everything into a nice dictionary
-    coeffs = np.take(data, coeffs_pattern, axis=1)
-    coeffs_scaled = np.take(data, coeffs_scaled_pattern, axis=1)
-    scaling = np.take(data, scaling_pattern, axis=1)
-
-    data_dict = {}
-    for tag_idx in np.arange(6):
-        data_dict.update({str(tags[tag_idx]): data[:, tag_idx]})
-
-    data_dict.update({'coeffs': coeffs.tolist(),
-                      'coeffs_scaled': coeffs_scaled.tolist(),
-                      'scaling': scaling.tolist()})
-
-    return pd.DataFrame(data_dict)
+        if term[:5] == 'Coeff':
+            idx_coeffs.append(idx)
+        
+        elif term[:6] == 'Scaled':
+            idx_coeffs_scaled.append(idx)
+        
+    coeffs = np.take(data, idx_coeffs, axis=1)
+    coeffs_scaled = np.take(data, idx_coeffs_scaled, axis=1)
+    
+    df = pd.DataFrame({'coeffs': list(coeffs),'coeffs_scaled': list(coeffs_scaled), 'epoch': epoch})
+  
+    for tag_idx in np.arange(5):
+        df[str(tags[tag_idx])] = data[:, tag_idx]
+        
+    return df
 
 
 def sparse_vec_classifier(test_vec, correct_vec):

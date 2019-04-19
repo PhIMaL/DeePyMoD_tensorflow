@@ -5,7 +5,6 @@ import tensorflow as tf
 This file contains several ready-to-use library functions.
 '''
 
-
 def library_1D(data, prediction, library_config):
     '''
     Constructs a library graph in 1D. Library config is dictionary with required terms.
