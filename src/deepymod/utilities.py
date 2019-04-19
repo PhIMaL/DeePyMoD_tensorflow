@@ -3,7 +3,6 @@ import os
 import tensorflow as tf
 import pandas as pd
 import sys
-sys.path.append('src/DeepMoD')
 
 def library_matrix_mat(u, v, latex=False):
     '''

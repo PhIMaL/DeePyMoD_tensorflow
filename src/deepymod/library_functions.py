@@ -249,5 +249,52 @@ def library_1Din_2Dout_chemo(data, prediction, library_config):
     time_deriv = [u_t, v_t]
 
     return time_deriv, theta
+
+def mech_library(data, prediction, library_config):
+    '''
+    Constructs a library graph in 1D. Library config is dictionary with required terms.
+    '''
+    y_t = tf.gradients(prediction, data)[0]    
+    y_tt   = tf.gradients(y_t, data)[0]
+    y_ttt   = tf.gradients(y_tt, data)[0]
+    y_tttt   = tf.gradients(y_ttt, data)[0]
+    
+    sigma0 =1;T=1/4
+    sigma = sigma0*(1-tf.exp(-data/T))         # increasing stress variable, speed controlled by T
+    sigma = tf.sin(data)/data
+    sigma_t = (data*tf.cos(data) - tf.sin(data))/(data**2)
+    sigma_tt = -((data**2-2)*tf.sin(data)+2*data*tf.cos(data))/(data**3)
+    sigma_ttt = (3*(data**2-2)*tf.sin(data)-data*(data**2-6)*tf.cos(data))/(data**4)
+    sigma_tttt = (4*(data**2-6)*tf.cos(data)+(data**4-12*data**2+24)*tf.sin(data))/(data**5)
+    sigma_ttttt = (data*(data**4-20*data**2+120)*tf.cos(data)-5*(data**4-12*data**2+24)*tf.sin(data))/(data**6)
+    theta = tf.concat((sigma, sigma_t, sigma_tt,sigma_ttt, prediction, y_tt,y_ttt), axis=1)
+    return [y_t], theta
+
+def generalized_maxwell(data, prediction, library_config):
+    # Creating libraries
+    sigma_library = library_config['stress_function'](data, library_config['stress_function_args']) # time is first column
+    epsilon_library = prediction    
+    
+    for order in np.arange(1, library_config['max_order']+1):
+        sigma_t =  tf.gradients(sigma_library[:, order-1:order], data)[0]
+        epsilon_t =  tf.gradients(epsilon_library[:, order-1:order], data)[0]
+        
+        sigma_library = tf.concat([sigma_library, sigma_t], axis=1)
+        epsilon_library = tf.concat([epsilon_library, epsilon_t], axis=1)
+        
+    # Taking out the first derivative of epsilon
+    mask = tf.one_hot(tf.ones(tf.shape(epsilon_library)[0], dtype=tf.int32), tf.shape(epsilon_library)[1], on_value=1, off_value=0, axis=-1) 
+    epsilon_library, epsilon_t = tf.dynamic_partition(epsilon_library, mask, 2)
+    epsilon_library = tf.reshape(epsilon_library, [tf.shape(prediction)[0], library_config['max_order']]) # size before was max_order+1
+    
+    library = tf.concat([sigma_library, epsilon_library], axis=1)
+    time_deriv = [tf.expand_dims(epsilon_t, axis=1)]
+    
+    return time_deriv, library
+    
+    
+
+    
+
   
 

@@ -1,10 +1,7 @@
 import numpy as np
-import sys
 import copy
 
-sys.path.append('src/DeepMoD')
-from PINN import PINN, map_to_sparse_vector, inference
-
+from deepymod.PINN import PINN, map_to_sparse_vector, inference
 
 def DeepMoD(data, target, config, library_function, library_config, train_opts, output_opts):
     # Defining internal configuration
