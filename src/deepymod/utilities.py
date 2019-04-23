@@ -49,12 +49,13 @@ def tensorboard_to_dataframe(event_path):
 
     data = []
     epoch = []
+    tags = []
     while True:
         try:
             event = data_iterator.__next__()
             data.append([value.simple_value for value in event.summary.value])
             epoch.append(event.step)
-            if event.step == 0:
+            if (event.step > 0) and (len(tags) == 0):
                 tags = [value.tag for value in event.summary.value]
         except:
             break

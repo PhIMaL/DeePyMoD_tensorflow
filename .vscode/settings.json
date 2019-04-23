@@ -1,0 +1,4 @@
+{
+    "python.linting.pylintEnabled": true,
+    "python.pythonPath": "/anaconda3/envs/deepmod/bin/python"
+}
