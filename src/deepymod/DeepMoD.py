@@ -8,8 +8,7 @@ def DeepMoD(data, target, config, library_function, library_config, train_opts, 
     internal_config = copy.deepcopy(config)
 
     # Defining initial weights, biases and coefficients for the network
-    sign_initializer = np.concatenate((np.ones((library_config['max_order']+1, 1)), -1.0*np.ones((library_config['max_order'], 1))),axis=0)
-    initial_coeffs = [sign_initializer * np.random.rand(library_config['total_terms'], 1) for output_neuron in np.arange(config['layers'][-1])]
+    initial_coeffs = [np.random.rand(library_config['total_terms'], 1) * 2 - 1 for output_neuron in np.arange(config['layers'][-1])]
     initial_biases = [np.zeros(neurons) for neurons in config['layers'][1:]]
     initial_weights = [np.random.randn(input_neurons, output_neurons) * np.sqrt(1 / (input_neurons + output_neurons)) for input_neurons, output_neurons in zip(config['layers'][:-1], config['layers'][1:])]  # Xavier initalization
     
