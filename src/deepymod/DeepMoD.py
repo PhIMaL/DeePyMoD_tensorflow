@@ -1,5 +1,7 @@
 import numpy as np
 import copy
+import os
+from datetime import datetime
 
 from deepymod.PINN import PINN, map_to_sparse_vector, inference
 
@@ -15,9 +17,10 @@ def DeepMoD(data, target, config, library_function, library_config, train_opts, 
 
     internal_config.update({'initial_coeffs': initial_coeffs, 'initial_weights': initial_weights, 'initial_biases': initial_biases})
 
+    output_opts['output_directory'] = os.path.join(output_opts['output_directory'], datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))  #making folder with timestamp
+
     # Run minimization procedure
     mask = np.ones((library_config['total_terms'], config['layers'][-1]))
-    converged = False
     output_opts.update({'cycles': 0})
 
     coeff_list, coeff_scaled_list, weights, biases = PINN(data, target, mask, internal_config, library_function, library_config, train_opts, output_opts)
