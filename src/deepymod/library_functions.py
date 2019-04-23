@@ -287,7 +287,7 @@ def generalized_maxwell(data, prediction, library_config):
     epsilon_library, epsilon_t = tf.dynamic_partition(epsilon_library, mask, 2)
     epsilon_library = tf.reshape(epsilon_library, [tf.shape(prediction)[0], library_config['max_order']]) # size before was max_order+1
     
-    library = tf.concat([sigma_library, epsilon_library], axis=1)
+    library = tf.concat([sigma_library,  epsilon_library], axis=1)
     time_deriv = [tf.expand_dims(epsilon_t, axis=1)]
     
     return time_deriv, library
