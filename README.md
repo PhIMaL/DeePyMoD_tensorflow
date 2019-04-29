@@ -21,4 +21,6 @@ and then go to the directory and run:
 
 `python setup.py install`
 
+We haven't included a requirements.txt, so you'll have to satisfy those yourself (Numpy, matplotlib and Tensorflow 1.12/1.13 should work).
+
 
