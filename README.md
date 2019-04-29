@@ -10,7 +10,7 @@ In the notebook folder we present three examples:
 * Korteweg-de Vries equation
 * 2D Advection-Diffusion equation
 
-More examples will be uploaded soon ... 
+**The Burger's example contains detailed instructions on using DeepMoD.** More examples will be uploaded soon ... 
 
 # How to install
 We suggest placing DeePyMoD in its own conda environment. Then, to install DeePyMoD simply clone the repository either by downloading the zip or cloning it through git, 
