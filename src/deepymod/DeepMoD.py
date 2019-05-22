@@ -13,11 +13,11 @@ def DeepMoD(data, target, config, library_function, library_config, train_opts, 
     initial_coeffs = [np.random.rand(library_config['total_terms'], 1) * 2 - 1 for output_neuron in np.arange(config['layers'][-1])]
     initial_biases = [np.zeros(neurons) for neurons in config['layers'][1:]]
     initial_weights = [np.random.randn(input_neurons, output_neurons) * np.sqrt(1 / (input_neurons + output_neurons)) for input_neurons, output_neurons in zip(config['layers'][:-1], config['layers'][1:])]  # Xavier initalization
-    
+
 
     internal_config.update({'initial_coeffs': initial_coeffs, 'initial_weights': initial_weights, 'initial_biases': initial_biases})
 
-    output_opts['output_directory'] = os.path.join(output_opts['output_directory'], datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))  #making folder with timestamp
+    output_opts['output_directory'] = os.path.join(output_opts['output_directory'], datetime.now().strftime("%Y%m%d_%H%M%S"))  #making folder with timestamp
 
     # Run minimization procedure
     mask = np.ones((library_config['total_terms'], config['layers'][-1]))
@@ -32,7 +32,7 @@ def DeepMoD(data, target, config, library_function, library_config, train_opts, 
     mask[~np.transpose(np.squeeze(np.array(sparsity_pattern_list)))] = 0
     coeff_list_thresholded = [np.expand_dims(coeff[sparsity_pattern], axis=1) for coeff, sparsity_pattern in zip(coeff_list, sparsity_pattern_list)]
     internal_config.update({'initial_coeffs': coeff_list_thresholded, 'initial_weights': weights, 'initial_biases': biases})
-        
+
     # Printing current sparse vector to see progress
     print('Current sparse vectors:')
     print([map_to_sparse_vector(sparsity_pattern, coeff) for sparsity_pattern, coeff in zip(sparsity_pattern_list, coeff_list_thresholded)])
@@ -57,4 +57,3 @@ def thresholding(vector, mode, treshold=0.0):
         sparsity_mask = np.abs(vector) < treshold
 
     return ~sparsity_mask
-
