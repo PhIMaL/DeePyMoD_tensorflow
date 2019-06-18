@@ -5,7 +5,8 @@ from datetime import datetime
 
 from deepymod.PINN import PINN, map_to_sparse_vector, inference
 
-def DeepMoD(data, target, config, library_function, library_config, train_opts, output_opts):
+
+def DeepMoD(data, target, config, library_function, library_config, train_opts, output_opts, BC_mask):
     # Defining internal configuration
     internal_config = copy.deepcopy(config)
 
@@ -13,7 +14,6 @@ def DeepMoD(data, target, config, library_function, library_config, train_opts, 
     initial_coeffs = [np.random.rand(library_config['total_terms'], 1) * 2 - 1 for output_neuron in np.arange(config['layers'][-1])]
     initial_biases = [np.zeros(neurons) for neurons in config['layers'][1:]]
     initial_weights = [np.random.randn(input_neurons, output_neurons) * np.sqrt(1 / (input_neurons + output_neurons)) for input_neurons, output_neurons in zip(config['layers'][:-1], config['layers'][1:])]  # Xavier initalization
-
 
     internal_config.update({'initial_coeffs': initial_coeffs, 'initial_weights': initial_weights, 'initial_biases': initial_biases})
 
@@ -23,7 +23,7 @@ def DeepMoD(data, target, config, library_function, library_config, train_opts, 
     mask = np.ones((library_config['total_terms'], config['layers'][-1]))
     output_opts.update({'cycles': 0})
 
-    coeff_list, coeff_scaled_list, weights, biases = PINN(data, target, mask, internal_config, library_function, library_config, train_opts, output_opts)
+    coeff_list, coeff_scaled_list, weights, biases = PINN(data, target, mask, internal_config, library_function, library_config, train_opts, output_opts, BC_mask)
     sparsity_pattern_list = [thresholding(coeff, mode='auto') for coeff in coeff_scaled_list]
 
     output_opts['cycles'] += 1

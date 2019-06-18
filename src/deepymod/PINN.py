@@ -5,7 +5,8 @@ import os
 from deepymod.graphs import PINN_graph, inference_graph
 from deepymod.tb_setup import tb_setup
 
-def PINN(data, target, mask, config, library_function, library_config, train_opts, output_opts):
+
+def PINN(data, target, mask, config, library_function, library_config, train_opts, output_opts, BC_mask):
     # Defining graph, optimizer and feed_dict
     graph = PINN_graph(config, library_function, library_config)
 
@@ -34,7 +35,6 @@ def PINN(data, target, mask, config, library_function, library_config, train_opt
                 if sess.run(graph.gradloss) < train_opts['grad_tol']:
                     print('Optimizer converged.')
                     break
-          
 
         coeff_list = [map_to_sparse_vector(coeff_mask, coeff) for coeff_mask, coeff in zip(np.split(mask, mask.shape[1], axis=1), sess.run(graph.coeff_list))]
         coeff_scaled_list = [map_to_sparse_vector(coeff_mask, coeff) for coeff_mask, coeff in zip(np.split(mask, mask.shape[1], axis=1), sess.run(graph.coeff_scaled_list))]
@@ -45,12 +45,13 @@ def PINN(data, target, mask, config, library_function, library_config, train_opt
 
     return coeff_list, coeff_scaled_list, weights, biases
 
+
 def inference(data, weights, biases, layers, batchsize=1000):
     graph = inference_graph(data, weights, biases, layers, batchsize=batchsize)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-    
+
         prediction = [sess.run(graph.prediction) for batch in np.arange(np.ceil(data.shape[0]/batchsize))]
         prediction = np.concatenate(prediction, axis=0)
 

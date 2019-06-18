@@ -54,8 +54,12 @@ def PINN_graph(config, library_function, library_config):
         L1_costs = [lambda_L1 * tf.reduce_sum(tf.abs(coeff[1:, :])) for coeff in coeff_scaled_list]
         cost_L1 = tf.reduce_sum(L1_costs)
 
+    #with tf.name_scope('Cost_BC'):
+        #bc_set = tf.gather_nd(dataset, bc_mask)
+        #cost_BC = tf.reduce_mean(tf.square(bc_set - ))
+
     with tf.name_scope("Total_cost"):
-        loss = cost_MSE + cost_PI + cost_L1
+        loss = cost_MSE + cost_PI + cost_L1 #+ cost_BC
 
     # graph node for gradient
     with tf.name_scope("GradLoss"):
@@ -63,6 +67,7 @@ def PINN_graph(config, library_function, library_config):
         gradloss = tf.reduce_max(grad_losses)
 
     return AttrDict(locals())
+
 
 def inference_graph(data, weights, biases, layers, batchsize=1000):
     dataset = tf.data.Dataset.from_tensor_slices(data).batch(batchsize)
@@ -76,7 +81,7 @@ def inference_graph(data, weights, biases, layers, batchsize=1000):
 
     return AttrDict(locals())
 
+
 class AttrDict(dict):
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
-
