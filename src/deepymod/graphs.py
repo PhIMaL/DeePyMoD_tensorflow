@@ -9,6 +9,7 @@ def PINN_graph(config, library_function, library_config):
         data_feed = tf.placeholder(tf.float32, shape=[None, config['layers'][0]])
         target_feed = tf.placeholder(tf.float32, shape=[None, config['layers'][-1]])
         mask_feed = tf.placeholder(tf.int32, shape=[None, config['layers'][-1]])
+        BC_mask = tf.placeholder(tf.int32, shape=[None, 1])
 
         lambda_L1 = tf.constant(config['lambda'], tf.float32)
 
@@ -54,12 +55,12 @@ def PINN_graph(config, library_function, library_config):
         L1_costs = [lambda_L1 * tf.reduce_sum(tf.abs(coeff[1:, :])) for coeff in coeff_scaled_list]
         cost_L1 = tf.reduce_sum(L1_costs)
 
-    #with tf.name_scope('Cost_BC'):
-        #bc_set = tf.gather_nd(dataset, bc_mask)
-        #cost_BC = tf.reduce_mean(tf.square(bc_set - ))
+    with tf.name_scope('Cost_BC'):
+        bc_set = tf.gather_nd(theta, BC_mask)
+        cost_BC = tf.reduce_mean(tf.square(bc_set[:, 3]))
 
     with tf.name_scope("Total_cost"):
-        loss = cost_MSE + cost_PI + cost_L1 #+ cost_BC
+        loss = cost_MSE + cost_PI + cost_L1 + cost_BC
 
     # graph node for gradient
     with tf.name_scope("GradLoss"):

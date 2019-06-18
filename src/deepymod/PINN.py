@@ -12,7 +12,7 @@ def PINN(data, target, mask, config, library_function, library_config, train_opt
 
     train_op = tf.train.AdamOptimizer(learning_rate=train_opts['learning_rate'], beta1=train_opts['beta1'], beta2=train_opts['beta2'], epsilon=train_opts['epsilon']).minimize(graph.loss)
 
-    feed_dict = {graph.data_feed: data, graph.target_feed: target, graph.mask_feed: mask}
+    feed_dict = {graph.data_feed: data, graph.target_feed: target, graph.mask_feed: mask, graph.BC_mask: BC_mask}
 
     # Running the fitting procedure
     with tf.Session() as sess:
@@ -24,15 +24,15 @@ def PINN(data, target, mask, config, library_function, library_config, train_opt
         merged_summary, custom_board = tb_setup(graph, output_opts)
         writer.add_summary(custom_board)
 
-        print('Epoch | Total loss | Loss gradient | MSE | PI | L1 ')
+        print('Epoch | Total loss | Loss gradient | MSE | PI | L1 | BC')
         for iteration in np.arange(train_opts['max_iterations']):
-            sess.run(train_op)
+            sess.run(train_op, feed_dict=feed_dict)
             if iteration % 50 == 0:
-                summary = sess.run(merged_summary)
+                summary = sess.run(merged_summary, feed_dict=feed_dict)
                 writer.add_summary(summary, iteration)
             if iteration % 500 == 0:
-                print(iteration, sess.run([graph.loss, graph.gradloss, graph.cost_MSE, graph.cost_PI, graph.cost_L1]))
-                if sess.run(graph.gradloss) < train_opts['grad_tol']:
+                print(iteration, sess.run([graph.loss, graph.gradloss, graph.cost_MSE, graph.cost_PI, graph.cost_L1, graph.cost_BC], feed_dict=feed_dict))
+                if sess.run(graph.gradloss, feed_dict=feed_dict) < train_opts['grad_tol']:
                     print('Optimizer converged.')
                     break
 
