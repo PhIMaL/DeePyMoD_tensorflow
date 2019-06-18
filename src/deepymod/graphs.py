@@ -14,6 +14,7 @@ def PINN_graph(config, library_function, library_config):
         lambda_L1 = tf.constant(config['lambda'], tf.float32)
 
         coeff_list = [tf.Variable(config['initial_coeffs'][output_neuron], dtype=tf.float32) for output_neuron in np.arange(config['layers'][-1])]
+        BC_value = tf.Variable(1.0, dtype=tf.float32)
 
     with tf.name_scope("Data_pipeline"):
         mask = tf.ones([tf.size(target_feed[:, 0:1]), tf.shape(mask_feed)[0], tf.shape(mask_feed)[1]], dtype=tf.int32) * tf.expand_dims(mask_feed, axis=0)
@@ -56,8 +57,9 @@ def PINN_graph(config, library_function, library_config):
         cost_L1 = tf.reduce_sum(L1_costs)
 
     with tf.name_scope('Cost_BC'):
-        bc_set = tf.gather_nd(theta, BC_mask)
-        cost_BC = tf.reduce_mean(tf.square(bc_set[:, 3]))
+        #bc_set = tf.gather_nd(theta[:, 3], BC_mask)  # Dirichlet
+        bc_set = tf.gather_nd(theta[:, 1], BC_mask)  # Neumann
+        cost_BC = tf.reduce_mean(tf.square(bc_set - BC_value))
 
     with tf.name_scope("Total_cost"):
         loss = cost_MSE + cost_PI + cost_L1 + cost_BC

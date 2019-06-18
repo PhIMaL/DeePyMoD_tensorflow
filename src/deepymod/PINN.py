@@ -31,7 +31,7 @@ def PINN(data, target, mask, config, library_function, library_config, train_opt
                 summary = sess.run(merged_summary, feed_dict=feed_dict)
                 writer.add_summary(summary, iteration)
             if iteration % 500 == 0:
-                print(iteration, sess.run([graph.loss, graph.gradloss, graph.cost_MSE, graph.cost_PI, graph.cost_L1, graph.cost_BC], feed_dict=feed_dict))
+                print(iteration, sess.run([graph.loss, graph.gradloss, graph.cost_MSE, graph.cost_PI, graph.cost_L1, graph.cost_BC, graph.BC_value], feed_dict=feed_dict))
                 if sess.run(graph.gradloss, feed_dict=feed_dict) < train_opts['grad_tol']:
                     print('Optimizer converged.')
                     break
