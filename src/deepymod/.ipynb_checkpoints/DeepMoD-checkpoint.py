@@ -51,7 +51,7 @@ def DeepMoD(data, target, config, library_function, library_config, train_opts, 
 
 def thresholding(vector, mode, treshold=0.0):
     if mode == 'auto':
-        upper_lim, lower_lim = np.median(vector)+0.05, np.median(vector) - 0.05
+        upper_lim, lower_lim = +0.1, -0.1
         sparsity_mask = (vector <= upper_lim) & (vector >= lower_lim)
     
 
